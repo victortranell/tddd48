@@ -1,7 +1,7 @@
 ;; as defined in "logistic.pddl".
 
 (define (problem p1-2)
-  (:domain DeliverSystem)
+  (:domain uav-domain)
   (:objects
     uav1 - uav
     p1 p2 - person
