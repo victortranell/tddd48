@@ -210,7 +210,6 @@ problem_name ="uav_problem_"+str(options.uavs)+"_"+str(options.carriers)+\
 "_"+str(len(crate_contents))
 
 # Open output file
-problem_name = "tmp"
 f = open(problem_name+".pddl", 'w')
 print f
 
@@ -263,7 +262,7 @@ for i,x in enumerate(person):
 		if item: 
 			f.write("\t(needs " + x + " " + crate_contents[j] + ")\n")
 
-	f.write("\t(at " + location[random.randint(0, len(location))] + " " + x + ")\n")
+	f.write("\t(at " + location[random.randint(0, len(location)-1)] + " " + x + ")\n")
 
 for i,cont in enumerate(crates_with_contents):
 	for crat in cont:

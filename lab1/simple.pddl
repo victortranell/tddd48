@@ -20,7 +20,7 @@
   )
 
   ;; The goal is to have both packages delivered to their destinations:
-  (:goal (and (at(depot uav1))
+  (:goal (and (at depot uav1)
           (has p1 food) ;; (at packet3 office1) 
      )
   )
