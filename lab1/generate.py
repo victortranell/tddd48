@@ -175,7 +175,6 @@ crate = []
 carrier = []
 location = []
 
-location.append("depot")
 for x in range(options.locations):
 	location.append("loc"+str(x+1))
 for x in range(options.uavs):
@@ -234,8 +233,6 @@ for x in location:
 for x in crate:
 	f.write("\t" + x + " - crate\n")
 
-for x in crate_contents:
-	f.write("\t" + x + " - contents\n")
 
 for x in person:
 	f.write("\t" + x + " - person\n")
