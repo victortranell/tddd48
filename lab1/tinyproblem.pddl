@@ -1,0 +1,5 @@
+(define (problem uav_problem_1_0_10_9_9_2)
+	(:domain uav-domain)
+	(:objects uav1 - uav loc1 - location)
+	(:init (at depot uav1) (free uav1))
+	(:goal (at loc1 uav1)))
