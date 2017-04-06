@@ -279,7 +279,16 @@ for x in range(0,4):
 
 for x in carrier:
 	f.write("\t(count " + x + " n0)\n")	
-	f.write("\t(at depot " + x + ")\n")	
+	f.write("\t(at depot " + x + ")\n")
+
+for l1 in location + ["depot"]:
+	for l2 in location + ["depot"]:
+		cost = 10
+		if(l1 == l2):
+			cost = 0
+		elif l1 == "depot" or l2 == "depot":
+			cost = 500
+		f.write("\t(= (fly-cost %s %s) %s)\n"%(l1, l2, cost))	
 
 f.write(")\n")
 
@@ -308,4 +317,7 @@ for x in range(options.persons):
 for x in carrier:
 	f.write("\t(at depot " + x + ")\n")	
 f.write("\t))\n")
+
+f.write("\t(:metric minimize (total-cost))")
+
 f.write(")\n")

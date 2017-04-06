@@ -3,15 +3,15 @@
 (define (domain uav-domain)
   (:requirements :typing :strips)
   (:types crate uav location person content object)
+  (:constants
+    food medicine - content
+    depot - location
+  )
   (:predicates
     (free ?u - uav)
     (at ?l - location ?o - object)
     (has ?o - object ?i - object)
     (needs ?p - person ?c - content)
-  )
-  (:constants
-    food medicine - content
-    depot - location
   )
   (:action drop
     :parameters(?u - uav ?l - location ?c - content ?k - crate ?p - person)

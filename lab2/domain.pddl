@@ -3,6 +3,10 @@
 (define (domain uav-domain)
   (:requirements :typing :strips :action-costs)
   (:types crate uav location person content object carrier num)
+  (:constants
+    food medicine - content
+    depot - location
+  )
   (:predicates
     (free ?u - uav)
     (at ?l - location ?o - object)
@@ -11,22 +15,19 @@
     (next ?n0 ?n1 - num)
     (count ?carrier - carrier ?n - num)
   )
-  (:constants
-    food medicine - content
-    depot - location
-  )
   (:functions 
     (total-cost) - number
     (fly-cost ?from ?to - location) - number
   )
   (:action drop
-    :parameters(?u - uav ?l - location ?c - content ?k - crate ?p - person)
-    :precondition (and (has ?u ?k) (at ?l ?u) (at ?l ?p) (needs ?p ?c) (has ?k ?c))
-    :effect (and (not (has ?u ?c))
-      (not (needs ?p ?c))
+    :parameters(?u - uav ?l - location ?content - content ?crate - crate ?p - person)
+    :precondition (and (has ?u ?crate) (at ?l ?u) (at ?l ?p) (needs ?p ?content) (has ?crate ?content))
+    :effect (and (not (has ?u ?crate))
+      (not (has ?crate ?content))
+      (not (needs ?p ?content))
       (free ?u)
-      (has ?p ?c)
-      (at ?l ?c)
+      (has ?p ?content)
+      (at ?l ?crate)
       )
   )
   (:action flyto
@@ -76,14 +77,17 @@
            (not (has ?carrier ?crate))
            (count ?carrier ?smallercount)
            (has ?u ?crate)
+           (at ?l ?crate)
            )
   )
   (:action move-carrier
-    :parameters(?carrier - carrier ?from - location ?to - location)
-    :precondition(at ?from ?carrier)
+    :parameters(?uav - uav ?carrier - carrier ?from - location ?to - location)
+    :precondition (and (at ?from ?carrier) (at ?from ?uav) (free ?uav))
     :effect(and (at ?to ?carrier)
             (not (at ?from ?carrier))
-            (increase (total-cost) 1)
+            (not (at ?from ?uav))
+            (at ?to ?uav)
+            (increase (total-cost) (fly-cost ?from ?to))
             )
   )
 )
