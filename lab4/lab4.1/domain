@@ -1,0 +1,126 @@
+;; Deliver system
+
+(defdomain domain (
+
+  (:operator (!drop ?uav ?content ?person ?loc ?crate)
+    ;;Preconditions
+    (
+    )
+    ;;Delete effects
+    (
+      (has ?uav ?crate)
+      (needs ?person ?content)
+    )
+    ;;Add effects
+    (
+      (free ?uav)
+      (has ?person ?content)
+      (at ?loc ?crate)
+    )
+  )
+
+  (:operator (!flyto ?uav ?fromloc ?toloc)
+    ;;Precondition
+    (
+      (at ?fromloc ?uav)
+      (diff ?fromloc ?toloc)
+    )
+    ;;Delete effects
+    (
+      (at ?fromloc ?uav)
+    )
+    ;Add effects
+    (
+      (at ?toloc ?uav)
+    )
+  )
+
+  (:operator (!pickup ?uav ?loc ?crate)
+    ;;Precondition
+    (
+      (at ?loc ?uav)
+      (at ?loc ?crate)
+      (free ?uav)
+    )
+    ;;Delete effects
+    (
+      (free ?uav)
+      (at ?loc ?crate)
+    )
+    ;Add effects
+    (
+      (has ?uav ?crate)
+    )
+  )
+
+  (:method (deliver ?person ?content)
+    all_ok
+    (
+      (at ?loc ?uav)
+      (at ?loc ?person)
+      (has ?uav ?crate)
+      (has ?crate ?content)
+      (needs ?person ?content)
+    )(
+      (!drop ?uav ?content ?person ?loc ?crate)
+    )
+
+    wrong_loc
+    (
+      (at ?loc1 ?uav)
+      (location ?loc1)
+      (at ?loc2 ?person)
+      (has ?uav ?crate)
+      (has ?crate ?content)
+      (needs ?person ?content)
+    )(
+      (!flyto ?uav ?loc1 ?loc2)
+      (deliver ?person ?content)
+    )
+
+    move_to_content
+    ()(
+      (find_content ?content)
+      (deliver ?person ?content)
+    )
+  )
+
+  (:method (find_content ?content)
+    all_right
+    (
+      (uav ?uav)
+      (at ?loc ?uav)
+      (at ?loc ?crate)
+      (has ?crate ?content)
+      )(
+        (!pickup ?uav ?loc ?crate)
+      )
+    wrong_loc
+    (
+      (uav ?uav)
+      (at ?loc1 ?uav)
+      (at ?loc2 ?crate)
+      (has ?crate ?content)
+    )(
+      (!flyto ?uav ?loc1 ?loc2)
+      (find_content ?content)
+    )
+  )
+
+  (:method (deliver-all)
+    make-deliveries
+    (
+      (needs ?person ?content)
+    )(
+      (deliver ?person ?content)
+      (deliver-all)
+      )
+    ()()
+    
+  )
+
+
+;;Axioms
+  (:- (same ?x ?x) nil)
+  (:- (diff ?x ?y) ((not (same ?x ?y))))
+))

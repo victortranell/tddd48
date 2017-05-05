@@ -1,0 +1,29 @@
+(defproblem problem domain
+    (
+        (content medicine)
+        (content food)
+        
+        (loc depot)
+        (depot depot)
+        (loc loc1)
+
+        (loc_count depot medicine 15)
+        (loc_count depot food 5)
+        (need loc1 medicine 5)
+        (loc_need loc1 5)
+
+        (spaceship spaceship1)
+        (at loc1 spaceship1)
+        (free spaceship1)
+
+        (carrier carrier1)
+        (at depot carrier1)
+        (space_left carrier1 4)
+        (carries carrier1 medicine 0)
+        (carries carrier1 food 0)
+    )
+    ;; Goals
+    (
+        (deliver_all)
+    )
+)

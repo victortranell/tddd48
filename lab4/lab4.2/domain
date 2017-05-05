@@ -1,0 +1,258 @@
+;; Deliver system
+
+(defdomain domain (
+
+  (:operator (!drop ?spaceship ?content ?person ?loc)
+    ;;Preconditions
+    (
+    )
+    ;;Delete effects
+    (
+      (has ?spaceship ?content)
+      (needs ?person ?content)
+      (loc_need ?loc ?totamount)
+    )
+    ;;Add effects
+    (
+      (need ?loc ?content (call - ?amount 1))
+      (loc_need ?loc (call - ?totamount 1))
+      (free ?spaceship)
+    )
+  )
+
+  (:operator (!flyto ?spaceship ?toloc)
+    ;;Precondition
+    (
+      (at ?fromloc ?spaceship)
+    )
+    ;;Delete effects
+    (
+      (at ?fromloc ?spaceship)
+    )
+    ;Add effects
+    (
+      (at ?toloc ?spaceship)
+    )
+  )
+
+  (:operator (!pickup ?spaceship ?loc ?content)
+    ;;Precondition
+    (
+      (at ?loc ?spaceship)
+      (free ?spaceship)
+      (loc_count ?loc ?content ?count)
+      (call > ?count 0)
+    )
+    ;;Delete effects
+    (
+      (free ?spaceship)
+      (loc_count ?loc ?content ?count)
+    )
+    ;Add effects
+    (
+      (has ?spaceship ?content)
+      (loc_count ?loc ?content (call - ?count 1))
+    )
+  )
+
+  (:operator (!load ?carrier ?spaceship ?content)
+    ;;Precondition
+    (
+      (at ?loc ?spaceship)
+      (at ?loc ?carrier)
+      (has ?spaceship ?content)
+    )
+    ;;Delete effects
+    (
+      (has ?spaceship ?content)
+      (space_left ?carrier ?space_left)
+      (carries ?carrier ?content ?count)
+    )
+    ;Add effects
+    (
+      (free ?spaceship)
+      (space_left ?carrier (call - ?space_left 1))
+      (carries ?carrier ?content (call + ?count 1))
+    )
+  )
+
+  (:operator (!move_carrier ?carrier ?spaceship ?loc)
+    ;;Precondition
+    (
+      (at ?loc1 ?carrier)
+      (at ?loc1 ?spaceship)
+      (diff ?loc1 ?loc)
+    )
+    ;;Delete effects
+    (
+      (at ?loc1 ?carrier)
+      (at ?loc1 ?spaceship)
+    )
+    ;Add effects
+    (
+      (at ?loc ?carrier)
+      (at ?loc ?spaceship)
+    )
+  )
+
+  (:operator (!unload ?loc ?content ?carrier ?number)
+    ;;Precondition
+    (
+    )
+    ;;Delete effects
+    (
+      (need ?loc ?content ?amount)
+      (carries ?carrier ?content ?count)
+      (loc_need ?loc ?loc_amount)
+    )
+    ;Add effects
+    (
+      (need ?loc ?content (call - ?amount ?number))
+      (carries ?carrier ?content (call - ?count ?number))
+      (loc_need ?loc (call - ?loc_amount ?number))
+    )
+  )
+
+  (:method (deliver_by_spaceship ?loc ?content)
+    all_ok
+    (
+      (at ?loc ?spaceship)
+      (has ?spaceship ?content)
+      (need ?loc ?content ?amount)
+      (call >= ?amount 1)
+    )(
+      (!drop ?spaceship ?content ?loc)
+    )
+
+    wrong_loc
+    (
+      (at ?loc1 ?spaceship)
+      (diff ?loc ?loc1)
+      (has ?spaceship ?content)
+      (need ?loc ?content ?amount)
+      (call >= ?amount 1)
+    )(
+      (!flyto ?spaceship ?loc)
+      (deliver_by_spaceship ?loc ?content)
+    )
+
+    move_to_content
+    ()(
+      (find_content ?spaceship ?content)
+      (deliver_by_spaceship ?loc ?content)
+    )
+  )
+
+  (:method (load_carrier ?carrier ?loc)
+    load
+    (
+      (carrier ?carrier)
+      (spaceship ?spaceship1)
+      (at ?loc1 ?carrier)
+      (space_left ?carrier ?space_left)
+      (call > ?space_left 0)
+      (need ?loc ?content ?need)
+      (carries ?carrier ?content ?count)
+      (call > ?need ?count)
+    )(
+      (find_content ?spaceship1 ?content)
+      (!flyto ?spaceship1 ?loc1)
+      (!load ?carrier ?spaceship1 ?content)
+      (load_carrier ?carrier ?loc)
+    )
+  )
+
+  (:method (unload_carrier ?carrier ?loc)
+    need_bigger_than_load
+    (
+      (need ?loc ?content ?amount)
+      (call > ?amount 0)
+      (carries ?carrier ?content ?count)
+      (call > ?count 0)
+      (call >= ?amount ?count)
+    )(
+      (!unload ?loc ?content ?carrier ?count)
+    )
+    load_bigger_than_need
+    (
+      (need ?loc ?content ?amount)
+      (call > ?amount 0)
+      (carries ?carrier ?content ?count)
+      (call > ?count 0)
+      (call >= ?count ?amount)
+    )(
+      (!unload ?loc ?content ?carrier ?amount)
+    )
+  )
+
+  (:method (deliver_by_carrier ?loc)
+    not_yet_loaded
+    (
+      (carrier ?carrier)
+      (space_left ?carrier ?space_left)
+      (call > ?space_left 1)
+      
+    )(
+      (load_carrier ?carrier ?loc)
+      (!move_carrier ?carrier ?loc)
+      (unload_carrier ?carrier ?loc)
+    )
+  )
+
+  (:method (select_delivery_method ?loc)
+    use_spaceship
+    (
+      (loc_need ?loc ?tot_amount)
+      (call = ?tot_amount 1)
+      (need ?loc ?content ?amount)
+      (call = ?amount 1)
+    )(
+      (deliver_by_spaceship ?loc ?content)
+    )
+    use_carrier
+    (
+      (loc_need ?loc ?amount)
+      (call > ?amount 1)
+    )(
+      (deliver_by_carrier ?loc)
+    )
+  )
+
+  (:method (find_content ?spaceship ?content)
+    all_right
+    (
+      (at ?loc ?spaceship)
+      (loc_count ?loc ?content ?count)
+      (call > ?count 0)
+      )(
+        (!pickup ?spaceship ?loc ?content)
+      )
+    wrong_loc
+    (
+      (at ?loc1 ?spaceship)
+      (loc_count ?loc2 ?content ?count1)
+      (call > ?count1 0)
+    )(
+      (!flyto ?spaceship ?loc2)
+      (find_content ?spaceship ?content)
+    )
+  )
+
+  (:method (deliver_all)
+    make_deliveries
+    (
+      (loc_need ?loc ?totamount)
+      (call >= ?totamount 1)
+    )(
+      (select_delivery_method ?loc)
+      (deliver_all)
+      )
+    ()()
+    
+  )
+
+
+;;Axioms
+  (:- (same ?x ?x) nil)
+  (:- (diff ?x ?y) ((not (same ?x ?y))))
+))
