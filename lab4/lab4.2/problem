@@ -12,9 +12,9 @@
         (need loc1 medicine 5)
         (loc_need loc1 5)
 
-        (spaceship spaceship1)
-        (at loc1 spaceship1)
-        (free spaceship1)
+        (uav uav1)
+        (at loc1 uav1)
+        (free uav1)
 
         (carrier carrier1)
         (at depot carrier1)
