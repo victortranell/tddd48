@@ -9,18 +9,26 @@
 
         (loc_count depot medicine 15)
         (loc_count depot food 5)
-        (need loc1 medicine 5)
-        (loc_need loc1 5)
+        (need loc1 medicine 7)
+        (loc_need loc1 7)
 
         (uav uav1)
+        ;;(uav uav2)
         (at loc1 uav1)
+        ;;(at loc1 uav2)
         (free uav1)
+        ;;(free uav2)
 
+        (carrier carrier2)
         (carrier carrier1)
         (at depot carrier1)
+        (at depot carrier2)
         (space_left carrier1 4)
+        (space_left carrier2 4)
         (carries carrier1 medicine 0)
         (carries carrier1 food 0)
+        (carries carrier2 medicine 0)
+        (carries carrier2 food 0)
     )
     ;; Goals
     (

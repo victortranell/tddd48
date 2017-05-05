@@ -27,6 +27,7 @@
       ;;Precondition
       (
         (at ?fromloc ?uav)
+        (diff ?fromloc ?toloc)
       )
       ;;Delete effects
       (
@@ -87,7 +88,6 @@
         (uav ?uav)
         (at ?loc1 ?carrier)
         (at ?loc1 ?uav)
-        (diff ?loc1 ?loc)
       )
       ;;Delete effects
       (
@@ -155,6 +155,20 @@
         )
     )
 
+    (:method (flyto ?uav ?loc)
+      at_pos(
+        (at ?loc ?uav)
+      )(
+      )
+      wrong_pos(
+        (at ?loc1 ?uav)
+        (diff ?loc1 ?loc)
+      )(
+        (!flyto ?uav ?loc)
+        (flyto ?uav ?loc)
+      )
+    )
+
     (:method (load_carrier ?carrier ?loc)
       load_carr
       (
@@ -168,7 +182,7 @@
         (call > ?need ?count)
       )(
         (find_content ?uav ?content)
-        (!flyto ?uav ?loc1)
+        (flyto ?uav ?loc1)
         (!load ?carrier ?uav ?content)
         (load_carrier ?carrier ?loc)
       )
@@ -205,11 +219,13 @@
           (carrier ?carrier)
           (space_left ?carrier ?space_left)
           (call > ?space_left 1)
+          (at ?home ?carrier)
           
         )(
           (load_carrier ?carrier ?loc)
           (!move_carrier ?carrier ?loc)
           (unload_carrier ?carrier ?loc)
+          (!move_carrier ?carrier ?home)
         )
         done()()
     )
