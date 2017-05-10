@@ -19,6 +19,13 @@
         (free uav1)
         (free uav2)
 
+        (ground_robot ground_robot1)
+        (ground_robot ground_robot2)
+        (at depot ground_robot1)
+        (at depot ground_robot2)
+        (free ground_robot1)
+        (free ground_robot2)
+
         (carrier carrier2)
         (carrier carrier1)
         (at depot carrier1)

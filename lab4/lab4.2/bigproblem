@@ -1,0 +1,88 @@
+(defproblem problem domain
+    (
+        (content medicine)
+        (content food)
+        
+        (loc depot)
+        (depot depot)
+        (loc loc1)
+        (loc loc2)
+        (loc loc3)
+        (loc loc4)
+        (loc loc5)
+        (loc loc6)
+        (loc loc7)
+        (loc loc8)
+
+        (loc_count depot medicine 40)
+        (loc_count depot food 40)
+        (need loc1 medicine 7)
+        (need loc2 food 5)
+        (need loc3 medicine 3)
+        (need loc4 food 8)
+
+        (loc_need loc1 7)
+        (loc_need loc2 5)
+        (loc_need loc3 3)
+        (loc_need loc4 8)
+        (loc loc5)
+        (loc loc6)
+
+        (loc_count depot medicine 20)
+        (loc_count depot food 20)
+        (need loc5 medicine 7)
+        (need loc6 food 5)
+
+
+        (need loc7 medicine 3)
+        (need loc8 food 8)
+
+        (loc_need loc5 7)
+        (loc_need loc6 5)
+        (loc_need loc7 3)
+        (loc_need loc8 8)
+
+                
+
+        (uav uav1)
+        (uav uav2)
+        (at loc1 uav1)
+        (at loc1 uav2)
+        (free uav1)
+        (free uav2)
+        (uav uav3)
+        (uav uav4)
+        (at loc1 uav3)
+        (at loc1 uav4)
+        (free uav3)
+        (free uav4)
+        (uav uav5)
+        (uav uav6)
+        (at loc1 uav5)
+        (at loc1 uav6)
+        (free uav5)
+        (free uav6)
+        (uav uav7)
+        (uav uav8)
+        (at loc1 uav7)
+        (at loc1 uav8)
+        (free uav7)
+        (free uav8)
+
+
+        (carrier carrier2)
+        (carrier carrier1)
+        (at depot carrier1)
+        (at depot carrier2)
+        (space_left carrier1 4)
+        (space_left carrier2 4)
+        (carries carrier1 medicine 0)
+        (carries carrier1 food 0)
+        (carries carrier2 medicine 0)
+        (carries carrier2 food 0)
+    )
+    ;; Goals
+    (
+        (deliver_all)
+    )
+)
