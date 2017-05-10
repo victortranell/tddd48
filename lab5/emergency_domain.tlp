@@ -28,154 +28,300 @@
 )
 
 (set-tl-control 
-	 (always (and 
+ 	(always 
+	 	(and 
 			
-			; Only pickup a type if there is some place to deliver it
-			(forall (?u) (uav ?u) (?t) (type ?t)
-			 	(implies 
-			 		(not (exists (?x) (location ?x) (not (= (cratesUndelivered ?t ?x) 0))))
-					(next 
-						(not (carrying ?u ?t))
-					)
-				)
-			)
-
+			;---------------------------
 			;Add more control rules here
+			;---------------------------
 
-			;Drop carrier iff at a destination where it is needed
-			(forall (?u) (uav ?u) (?c) (carrier ?c) (?l) (location ?l)
+
+
+			;-----
+			;DO
+			;-----
+
+
+			;Always pick up item if it is needed and uav is empty
+;			(forall (?u) (uav ?u) (?c) (carrier ?c) (?t) (type ?t) (?l) (location ?l)
+;				(implies
+;					(and 
+;						(empty ?u)
+;						(loc ?u ?l)
+;						(exists (?l2) (location ?l2)
+;							(> (cratesUndelivered ?t ?l2) (boxcount ?c ?t))
+;						)
+;						(not (exists (?u2) (uav ?u2) (carrying ?u2 ?t)))
+;					)
+;					(next
+;						(carrying ?u ?t)
+;					)
+;				)
+;			)
+
+;			;Always load item on carrier if there is a demand for it > 1
+			(forall (?u) (uav ?u) (?c) (carrier ?c) (?t) (type ?t) (?l) (location ?l)
 				(implies
 					(and 
-						(carrying ?u ?c)
-						(loc ?u ?l)
-						(exists (?t) (type ?t)
+						(carrying ?u ?t)
+						(> (unused ?c) 0)
+						(exists (?l2) (location ?l2) 
 							(and
-								(> (boxcount ?c ?t) 0)
-								(> (cratesUndelivered ?t ?l) 0)
+								(< (boxcount ?c ?t) (cratesUndelivered ?t ?l2))
+								(> (cratesUndelivered ?t ?l2) 1)
 							)
 						)
-						
-					)
-					(next
-						(loc ?c ?l)
-					)
-				)
-			)
-
-			;Don't ly to a location where the item is not needed
-			(forall (?u) (uav ?u) (?t) (type ?t) (?l) (location ?l)
-				(implies
-					(and 
-						(carrying ?u ?t)
-						(not (loc ?u ?l))
-						(= (cratesUndelivered ?t ?l) 0)
-					)
-					(next
-						(not (loc ?u ?l))
-					)
-				)
-			)
-
-			;Drop item iff at a destination where it is needed
-			(forall (?u) (uav ?u) (?t) (type ?t) (?l) (location ?l)
-				(implies
-					(and 
-						(carrying ?u ?t)
-						(loc ?u ?l)
-						(> (cratesUndelivered ?t ?l) 0)
-					)
-					(next
-						(empty ?u)
-					)
-				)
-			)
-
-			; Don't fly carrier to destination if it does not contain
-			; items that are not needed there unless it is empty
-			(forall (?u) (uav ?u) (?c) (carrier ?c) (?l) (location ?l)
-				(implies
-					(and 
-						(carrying ?u ?c)
-						(not (loc ?u ?l))
-						(exists (?t) (type ?t)
-							(and
-								(not (= (boxcount ?c ?t) 0))
-								(> (cratesUndelivered ?t ?l) 0)
-							)
-						)
-						
-					)
-					(next
-						(loc ?u ?l)
-					)
-				)
-			)
-
-			;Do not fly to a location with a uav if the demand is >1
-			(forall (?u) (uav ?u) (?l) (location ?l) (?t) (type ?t)
-				(implies
-					(and
-						(carrying ?u ?t)
-						(> (cratesUndelivered ?t ?l) 1)
-						(not (loc ?u ?l))
-					)
-					(next
-						(not (loc ?u ?l))
-					)
-				)
-
-			)
-
-			;Do not fly empty-handed with a uav if you are not going to the depot
-			(forall (?u) (uav ?u) (?l) (location ?l) (?t) (type ?t)
-				(implies
-					(and
-						(empty ?u)
-						(> (cratesUndelivered ?t ?l) 0)
-						(not (loc ?u ?l))
-					)
-					(next
-						(not (loc ?u ?l))
-					)
-				)
-
-			)
-
-			;Don't pick up item of the same type as another uav is already holding
-			(forall (?u) (uav ?u) (?t) (type ?t)
-				(implies
-					(and
-						(not (carrying ?u ?t))
-						(exists (?u2) (uav ?u2)
-							(carrying ?u2 ?t)
-						)
-					)
-					(next
-						(not (carrying ?u ?t))
-					)
-				)
-			)
-
-			;If carrier carrying items in a location where it is needed, unload.
-			(forall (?c) (carrier ?c) (?u) (uav ?u) (?t) (type ?t) (?l) (location ?l)
-				(implies
-					(and
-						(empty ?u)
-						(> (boxcount ?c ?t) 0)
-						(> (cratesUndelivered ?t ?l) 0)
 						(loc ?u ?l)
 						(loc ?c ?l)
 					)
 					(next
-						(carrying ?u ?t)
+						(empty ?u)
 					)
 				)
 			)
+;
+;			;Fly empty carriers back to depot if the uav is carrying it
+;			(forall (?u) (uav ?u) (?c) (carrier ?c) (?l) (location ?l)
+;				(implies
+;					(and
+;						(carrying ?u ?c)
+;						(= (used ?c) 0)
+;						(not (loc ?u ?l))
+;						(exists (?d) (depot ?d) (loc ?d ?l))
+;					)
+;					(next
+;						(loc ?u ?l)
+;					)
+;				)
+;			)
+;
+
+			;If carrier at depot fills need -> pick up carrier
+			(forall (?u) (uav ?u) (?t) (type ?t) (?c) (carrier ?c) (?l) (location ?l)
+				(implies
+					(and
+						(empty ?u)
+						(loc ?u ?l)
+						(loc ?c ?l)
+						(exists (?l2) (location ?l2)
+							(and
+								(> (cratesUndelivered ?t ?l2) 1)
+								(= (boxcount ?c ?t) (cratesUndelivered ?t ?l2))
+							)
+						)
+					)
+					(next
+						(carrying ?u ?c)
+					)
+				)
+			)
+;
+;			
+;			;Drop carrier iff at a destination where it is needed
+;			(forall (?u) (uav ?u) (?c) (carrier ?c) (?l) (location ?l)
+;				(implies
+;					(and 
+;						(carrying ?u ?c)
+;						(loc ?u ?l)
+;						(exists (?t) (type ?t)
+;							(and
+;								(> (boxcount ?c ?t) 0)
+;								(> (cratesUndelivered ?t ?l) 0)
+;							)
+;						)
+;					)
+;					(next
+;						(and
+;							(empty ?u)
+;							(loc ?c ?l)
+;						)
+;					)
+;				)
+;			)
+;
+;
+;			;Drop item iff at a destination where it is needed
+;			(forall (?u) (uav ?u) (?t) (type ?t) (?l) (location ?l)
+;				(implies
+;					(and 
+;						(carrying ?u ?t)
+;						(loc ?u ?l)
+;						(> (cratesUndelivered ?t ?l) 0)
+;					)
+;					(next
+;						(empty ?u)
+;					)
+;				)
+;			)
+;
+;			; Only fly carriers with items to locations where they are needed
+;			(forall (?u) (uav ?u) (?c) (carrier ?c) (?l) (location ?l)
+;				(implies
+;					(and 
+;						(carrying ?u ?c)
+;						(not (loc ?u ?l))
+;						(exists (?t) (type ?t)
+;							(and
+;								(> (boxcount ?c ?t) 0)
+;								(> (cratesUndelivered ?t ?l) 0)
+;							)
+;						)
+;						
+;					)
+;					(next
+;						(loc ?u ?l)
+;					)
+;				)
+;			)
+;
+;
+;			;If carrier carrying items in a location where it is needed, unload.
+;			(forall (?c) (carrier ?c) (?u) (uav ?u) (?t) (type ?t) (?l) (location ?l)
+;				(implies
+;					(and
+;						(empty ?u)
+;						(> (boxcount ?c ?t) 0)
+;						(> (cratesUndelivered ?t ?l) 0)
+;						(loc ?u ?l)
+;						(loc ?c ?l)
+;					)
+;					(next
+;						(carrying ?u ?t)
+;					)
+;				)
+;			)
+;
+;
+;
+;			;-----
+			;DON'T
+			;-----
 
 
-
-
- )))					
+;			; Only pickup a type if there is some place to deliver it
+;			(forall (?u) (uav ?u) (?t) (type ?t)
+;			 	(implies 
+;			 		(not (exists (?x) (location ?x) (not (= (cratesUndelivered ?t ?x) 0))))
+;					(next 
+;						(not (carrying ?u ?t))
+;					)
+;				)
+;			)
+;
+;
+;			;Don't fly to a location with a uav if the demand is >1
+;			(forall (?u) (uav ?u) (?l) (location ?l) (?t) (type ?t)
+;				(implies
+;					(and
+;						(carrying ?u ?t)
+;						(> (cratesUndelivered ?t ?l) 1)
+;						(not (loc ?u ?l))
+;					)
+;					(next
+;						(not (loc ?u ?l))
+;					)
+;				)
+;
+;			)
+;
+;
+;			;Don't fly empty-handed with a uav if you are not going to the depot
+;			(forall (?u) (uav ?u) (?l) (location ?l) (?t) (type ?t)
+;				(implies
+;					(and
+;						(empty ?u)
+;						(> (cratesUndelivered ?t ?l) 0)
+;						(not (loc ?u ?l))
+;					)
+;					(next
+;						(not (loc ?u ?l))
+;					)
+;				)
+;			)
+;
+;
+;			;Don't pick up empty carriers if positioned at depot
+;			(forall (?u) (uav ?u) (?c) (carrier ?c) (?l) (location ?l)
+;				(implies
+;					(and
+;						(= (used ?c) 0)
+;						(loc ?c ?l)
+;						(exists (?d) (depot ?d) (loc ?d ?l))
+;					)
+;					(next
+;						(not (carrying ?u ?c))
+;					)
+;				)
+;			)
+;
+;
+;			;Don't pick up item of the same type as another uav is already holding
+;			(forall (?u) (uav ?u)
+;				(implies
+;					(and
+;						(empty ?u)
+;						(exists (?u2) (uav ?u2)
+;							(not (empty ?u2))
+;						)
+;					)
+;					(next
+;						(empty ?u)
+;					)
+;				)
+;			)
+;
+;
+;			;Don't pick up carrier if already carried by other uav
+;			(forall (?u) (uav ?u) (?c) (carrier ?c) (?t) (type ?t)
+;				(implies
+;					(and
+;						(not (carrying ?u ?c))
+;						(exists (?u2) (uav ?u2)
+;							(carrying ?u2 ?c)
+;						)
+;					)
+;					(next
+;						(not (carrying ?u ?c))
+;					)
+;				)
+;			)
+;
+;			;Don't fly uav carrying carrier with item that is not needed at
+;			;location X to location X - or dont't fly uav carrying item that is
+;			;not needed at location X to location X
+;			(forall (?u) (uav ?u) (?c) (carrier ?c) (?l) (location ?l)
+;				(implies
+;					(or
+;						; Carrier carrying item
+;						(and 
+;							(not (loc ?u ?l))
+;							(carrying ?u ?c)
+;							(exists (?t) (type ?t)
+;								(and
+;									(> (boxcount ?c ?t) 0)
+;									(= (cratesUndelivered ?t ?l) 0)
+;								)
+;							)
+;						)
+;						; Uav carrying item
+;						(and 
+;							(not (loc ?u ?l))
+;							(exists (?t) (type ?t)
+;								(and
+;									(carrying ?u ?t)
+;									(= (cratesUndelivered ?t ?l) 0)
+;								)
+;							)
+;						)
+;					)
+;					(next
+;						(not (loc ?u ?l))
+;					)
+;				)
+;			)
+		)
+	)
+)					
 
 
 ; Crates are picked up from the depot via this operator.
